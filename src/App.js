@@ -2,6 +2,15 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Redirect } from "react-router-dom";
 import axios from "axios";
 
+axios.interceptors.request.use(function(config) {
+  const token = localStorage.getItem("todoToken");
+  if (token) {
+    config.headers.common = { Authorization: `Bearer ${token}` };
+  }
+
+  return config;
+});
+
 const TodoModel = {
   all() {
     return axios.get("http://localhost:1337/todos");
@@ -56,6 +65,7 @@ function Login(e) {
         auth.isAuthenticated = true;
         setUser(data.user);
         localStorage.setItem("todoUser", JSON.stringify(data.user));
+        localStorage.setItem("todoToken", data.jwt);
       })
       .catch(err => console.log(err));
 
