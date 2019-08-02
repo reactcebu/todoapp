@@ -34,7 +34,7 @@ function App() {
     TodoModel.all().then(response => setTodos(response.data));
   }, []);
 
-  function handleSubmitTodo(e) {
+  function addTodo(e) {
     const newTodo = e.target.querySelector("input[type='text']").value;
     TodoModel.create({ title: newTodo }).then(addedTodo =>
       setTodos([...todos, addedTodo.data])
@@ -64,7 +64,7 @@ function App() {
 
   return (
     <>
-      <form method="post" onSubmit={handleSubmitTodo}>
+      <form method="post" onSubmit={addTodo}>
         <input type="text" placeholder="What needs to be done?  " />
       </form>
       <ul>
