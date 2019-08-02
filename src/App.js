@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Route, Redirect } from "react-router-dom";
 import axios from "axios";
 
 const TodoModel = {
@@ -26,6 +27,56 @@ const TodoModel = {
     return axios.delete("http://localhost:1337/todos/" + id);
   }
 };
+
+const auth = {
+  isAuthenticated: localStorage.getItem("todoUser") || false,
+
+  login(credentials) {
+    const { identifier, password } = credentials;
+    return axios.post("http://localhost:1337/auth/local", {
+      identifier,
+      password
+    });
+  },
+
+  logout() {}
+};
+
+function Login(e) {
+  const [user, setUser] = useState(localStorage.getItem("todoUser") || {});
+
+  function handleAuthenticate(e) {
+    auth
+      .login({
+        identifier: e.target.querySelector("input[type='text']").value,
+        password: e.target.querySelector("input[type='password']").value
+      })
+      .then(response => response.data)
+      .then(data => {
+        auth.isAuthenticated = true;
+        setUser(data.user);
+        localStorage.setItem("todoUser", JSON.stringify(data.user));
+      })
+      .catch(err => console.log(err));
+
+    e.preventDefault();
+  }
+
+  if (auth.isAuthenticated) {
+    return <Redirect to={{ pathname: "/" }} />;
+  }
+
+  return (
+    <form method="post" onSubmit={handleAuthenticate}>
+      <h2>Login Here</h2>
+      <label>Username</label>
+      <input type="text" name="username" />
+      <label>Password</label>
+      <input type="password" name="password" />
+      <button>Login</button>
+    </form>
+  );
+}
 
 function App() {
   const [todos, setTodos] = useState([]);
@@ -62,6 +113,10 @@ function App() {
     );
   }
 
+  if (!auth.isAuthenticated) {
+    return <Redirect to={{ pathname: "/login" }} />;
+  }
+
   return (
     <>
       <form method="post" onSubmit={addTodo}>
@@ -84,4 +139,13 @@ function App() {
   );
 }
 
-export default App;
+function Main() {
+  return (
+    <Router>
+      <Route path="/" exact component={App} />
+      <Route path="/login" component={Login} />
+    </Router>
+  );
+}
+
+export default Main;
